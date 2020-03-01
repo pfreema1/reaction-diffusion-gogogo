@@ -1,3 +1,5 @@
+
+
 varying vec2 vUv;
 uniform float screenWidth;
 uniform float screenHeight;
@@ -62,4 +64,5 @@ void main()
     col = vec3(value);
 
     gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
+    // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

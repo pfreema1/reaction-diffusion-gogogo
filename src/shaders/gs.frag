@@ -1,4 +1,6 @@
+
 #pragma glslify: snoise2 = require(glsl-noise/simplex/2d)
+
 
 varying vec2 vUv;
 uniform float screenWidth;
