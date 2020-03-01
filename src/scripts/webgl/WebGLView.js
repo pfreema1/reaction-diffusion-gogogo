@@ -35,7 +35,7 @@ export default class WebGLView {
     this.initThree();
     this.initBgScene();
     this.initLights();
-    this.initTweakPane();
+    // this.initTweakPane();
     // await this.loadTestMesh();
     this.setupTextCanvas();
     // this.initMouseMoveListen();

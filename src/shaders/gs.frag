@@ -1,3 +1,5 @@
+#pragma glslify: snoise2 = require(glsl-noise/simplex/2d)
+
 varying vec2 vUv;
 uniform float screenWidth;
 uniform float screenHeight;
@@ -8,10 +10,17 @@ uniform float kill;
 uniform vec2 brush;
 uniform float diffRateA;
 uniform float diffRateB;
+uniform float uTime;
+// uniform float brushSize;
+
 
 vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
 float step_x = 1.0/screenWidth;
 float step_y = 1.0/screenHeight;
+
+float map(float value, float min1, float max1, float min2, float max2) {
+  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
 
 void main()
 {
@@ -23,6 +32,8 @@ void main()
     
     //float feed = vUv.y * 0.083;
     //float kill = vUv.x * 0.073;
+
+    float brushSize = map(snoise2(vec2(uTime * 0.00005)), -1.0, 1.0, 5.0, 2000.0);
     
     vec2 uv = texture2D(tSource, vUv).rg;
     vec2 uv0 = texture2D(tSource, vUv+vec2(-step_x, 0.0)).rg;
@@ -41,7 +52,7 @@ void main()
     {
         vec2 diff = (vUv - brush)/texel;
         float dist = dot(diff, diff);
-        if(dist < 555.0)
+        if(dist < brushSize)
             dst.g = 0.9;
     }
     

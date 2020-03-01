@@ -54,7 +54,9 @@ export default class RD {
             color3: { type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21) },
             color4: { type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4) },
             color5: { type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6) },
-            invert: { type: 'f', value: 1.0 }
+            invert: { type: 'f', value: 1.0 },
+            // brushSize: { type: 'f', value: undefined },
+            uTime: { type: 'f', value: undefined }
         }
 
         this.mGSMaterial = new THREE.ShaderMaterial({
@@ -142,11 +144,13 @@ export default class RD {
 
 
         this.mUniforms.delta.value = dt;
-        this.mUniforms.feed.value = this.feed;
-        // this.mUniforms.feed.value = THREE.Math.mapLinear(Math.sin(time * 0.0005), -1, 1, 0.026, 0.083);
+        // this.mUniforms.feed.value = this.feed;
+        this.mUniforms.feed.value = THREE.Math.mapLinear(Math.sin(time * 0.0005), -1, 1, 0.026, 0.083);
+        // this.mUniforms.brushSize.value = THREE.Math.mapLinear(Math.sin(time * 0.0005), -1, 1, 5, 10000);
         this.mUniforms.kill.value = this.kill;
         this.mUniforms.diffRateA.value = this.diffRateA;
         this.mUniforms.diffRateB.value = this.diffRateB;
+        this.mUniforms.uTime.value = time;
 
         for (let i = 0; i < this.iterations; ++i) {
             if (!this.mToggled) {
