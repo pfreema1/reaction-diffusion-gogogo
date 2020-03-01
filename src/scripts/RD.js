@@ -1,3 +1,9 @@
+/**********************
+ * 
+ *  lots of this code came from here: https://github.com/pmneila/jsexp
+ *  excellent explanation of the gray-scott model here: http://www.karlsims.com/rd.html
+ */
+
 import * as THREE from 'three';
 import glslify from 'glslify';
 import genericVert from '../shaders/generic.vert';
@@ -9,8 +15,6 @@ export default class RD {
         this.bgScene = bgScene;
         this.bgCamera = bgCamera;
         this.renderer = renderer;
-        this.feed = 0.037;
-        this.kill = 0.06;
         this.mMinusOnes = new THREE.Vector2(-1, -1);
         this.mCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -10000, 10000);
         this.mCamera.position.z = 100;
@@ -19,6 +23,21 @@ export default class RD {
         this.mToggled = false;
         this.width = window.innerWidth;
         this.height = window.innerHeight;
+        this.iterations = 8;
+
+        this.feed = 0.037;
+        this.kill = 0.06;
+        this.diffRateA = 0.2097;
+        this.diffRateB = 0.105;
+
+
+        // this.feed = 0.025;
+        // this.kill = 0.062;
+        // this.diffRateA = 0.3;
+        // this.diffRateB = 0.1;
+
+
+        this.initMouseMoveListen();
 
         this.mUniforms = {
             screenWidth: { type: "f", value: window.innerWidth },
@@ -27,12 +46,15 @@ export default class RD {
             delta: { type: "f", value: 1.0 },
             feed: { type: "f", value: this.feed },
             kill: { type: "f", value: this.kill },
-            brush: { type: "v2", value: new THREE.Vector2(0.7, 0.7) },
+            diffRateA: { type: 'f', value: undefined },
+            diffRateB: { type: 'f', value: undefined },
+            brush: { type: "v2", value: new THREE.Vector2(-10, -10) },
             color1: { type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0) },
             color2: { type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2) },
             color3: { type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21) },
             color4: { type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4) },
-            color5: { type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6) }
+            color5: { type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6) },
+            invert: { type: 'f', value: 1.0 }
         }
 
         this.mGSMaterial = new THREE.ShaderMaterial({
@@ -58,11 +80,23 @@ export default class RD {
 
         this.render(0);
 
-        this.mUniforms.brush.value = new THREE.Vector2(0.7, 0.7);
+        this.mUniforms.brush.value = new THREE.Vector2(0.5, 0.5);
         this.mLastTime = new Date().getTime();
 
-        // requestAnimationFrame(this.render.bind(this));
+        requestAnimationFrame(this.render.bind(this));
 
+    }
+
+    initMouseMoveListen() {
+        this.mouse = new THREE.Vector2();
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+
+        window.addEventListener('mousemove', ({ clientX, clientY }) => {
+            this.mouse.x = clientX; //(clientX / this.width) * 2 - 1;
+            this.mouse.y = clientY; //-(clientY / this.height) * 2 + 1;
+
+        });
     }
 
     setupCamera() {
@@ -98,7 +132,7 @@ export default class RD {
         this.mUniforms.screenHeight.value = height;
     }
 
-    render(time, mouse) {
+    render(time) {
         let dt = (time - this.mLastTime) / 20.0;
         if (dt > 0.8 || dt <= 0)
             dt = 0.8;
@@ -109,45 +143,39 @@ export default class RD {
 
         this.mUniforms.delta.value = dt;
         this.mUniforms.feed.value = this.feed;
+        // this.mUniforms.feed.value = THREE.Math.mapLinear(Math.sin(time * 0.0005), -1, 1, 0.026, 0.083);
         this.mUniforms.kill.value = this.kill;
+        this.mUniforms.diffRateA.value = this.diffRateA;
+        this.mUniforms.diffRateB.value = this.diffRateB;
 
-        // for (let i = 0; i < 8; ++i) {
-        //     if (!this.mToggled) {
-        //         this.mUniforms.tSource.value = this.mTexture1.texture;
-        //         this.renderer.setRenderTarget(this.mTexture2);
-        //         this.renderer.render(this.mScene, this.mCamera);
-        //         this.renderer.setRenderTarget(null);
-        //         this.mUniforms.tSource.value = this.mTexture2.texture;
-        //     } else {
-        //         this.mUniforms.tSource.value = this.mTexture2.texture;
-        //         this.renderer.setRenderTarget(this.mTexture1);
-        //         this.renderer.render(this.mScene, this.mCamera);
-        //         this.renderer.setRenderTarget(null);
-        //         this.mUniforms.tSource.value = this.mTexture1.texture;
-        //     }
+        for (let i = 0; i < this.iterations; ++i) {
+            if (!this.mToggled) {
+                this.mUniforms.tSource.value = this.mTexture1.texture;
+                this.renderer.setRenderTarget(this.mTexture2);
+                this.renderer.render(this.mScene, this.mCamera);
+                this.renderer.setRenderTarget(null);
+                this.mUniforms.tSource.value = this.mTexture2.texture;
+            } else {
+                this.mUniforms.tSource.value = this.mTexture2.texture;
+                this.renderer.setRenderTarget(this.mTexture1);
+                this.renderer.render(this.mScene, this.mCamera);
+                this.renderer.setRenderTarget(null);
+                this.mUniforms.tSource.value = this.mTexture1.texture;
+            }
 
-        //     this.mToggled = !this.mToggled;
+            this.mToggled = !this.mToggled;
 
-        //     // this.mUniforms.brush.value = this.mMinusOnes;
-        // }
+            this.mUniforms.brush.value = this.mMinusOnes;
+        }
 
-        this.mUniforms.tSource.value = this.mTexture1.texture;
-        this.renderer.setRenderTarget(this.mTexture2);
-        this.renderer.render(this.mScene, this.mCamera);
-        this.renderer.setRenderTarget(null);
-        this.mUniforms.tSource.value = this.mTexture2.texture;
-        this.renderer.setRenderTarget(this.mTexture1);
-        this.renderer.render(this.mScene, this.mCamera);
-        this.renderer.setRenderTarget(null);
-        this.mUniforms.tSource.value = this.mTexture1.texture;
-
-
-        if (mouse) {
-            this.mUniforms.brush.value = new THREE.Vector2(mouse.x / this.width, 1 - mouse.y / this.height);
+        if (this.mouse) {
+            this.mUniforms.brush.value = new THREE.Vector2(this.mouse.x / this.width, 1 - this.mouse.y / this.height);
         }
 
         this.mScreenQuad.material = this.mScreenMaterial;
         this.mScreenQuad.material.needsUpdate = true;
-        // this.renderer.render(this.mScene, this.mCamera);
+        this.renderer.render(this.mScene, this.mCamera);
+
+        requestAnimationFrame(this.render.bind(this));
     }
 }

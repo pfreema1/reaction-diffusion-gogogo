@@ -22,6 +22,10 @@ export default class WebGLView {
     this.PARAMS = {
       feed: 0.037,
       kill: 0.06,
+      diffRateA: 0.2097,
+      diffRateB: 0.105,
+      invert: true,
+      iterations: 8
     };
 
     this.init();
@@ -34,12 +38,70 @@ export default class WebGLView {
     this.initTweakPane();
     // await this.loadTestMesh();
     this.setupTextCanvas();
-    this.initMouseMoveListen();
+    // this.initMouseMoveListen();
     this.initMouseCanvas();
     this.initRenderTri();
     this.initRD();
     // this.initPostProcessing();
     this.initResizeHandler();
+  }
+
+  initTweakPane() {
+    this.pane = new Tweakpane();
+
+    this.pane
+      .addInput(this.PARAMS, 'feed', {
+        min: 0.0,
+        max: 0.1
+      })
+      .on('change', value => {
+        this.rd.feed = value;
+      });
+
+    this.pane
+      .addInput(this.PARAMS, 'kill', {
+        min: 0.0,
+        max: 0.073
+      })
+      .on('change', value => {
+        this.rd.kill = value;
+      });
+
+    this.pane
+      .addInput(this.PARAMS, 'diffRateA', {
+        min: 0.0,
+        max: 0.5
+      })
+      .on('change', value => {
+        this.rd.diffRateA = value;
+      });
+
+    this.pane
+      .addInput(this.PARAMS, 'diffRateB', {
+        min: 0.0,
+        max: 0.5
+      })
+      .on('change', value => {
+        this.rd.diffRateB = value;
+      });
+
+    this.pane.addInput(this.PARAMS, 'invert')
+      .on('change', value => {
+        if (value) {
+          this.rd.mUniforms.invert.value = 1.0;
+        } else {
+          this.rd.mUniforms.invert.value = 0.0;
+        }
+      });
+
+    this.pane
+      .addInput(this.PARAMS, 'iterations', {
+        min: 1,
+        max: 24
+      })
+      .on('change', value => {
+        this.rd.iterations = Math.floor(value);
+      });
   }
 
   initRD() {
@@ -106,27 +168,7 @@ export default class WebGLView {
     // this.composer.addPass(filmPass);
   }
 
-  initTweakPane() {
-    this.pane = new Tweakpane();
 
-    this.pane
-      .addInput(this.PARAMS, 'feed', {
-        min: 0.0,
-        max: 0.1
-      })
-      .on('change', value => {
-        this.rd.feed = value;
-      });
-
-    this.pane
-      .addInput(this.PARAMS, 'kill', {
-        min: 0.0,
-        max: 0.073
-      })
-      .on('change', value => {
-        this.rd.kill = value;
-      });
-  }
 
   initMouseCanvas() {
     this.mouseCanvas = new MouseCanvas();
@@ -284,7 +326,7 @@ export default class WebGLView {
     if (this.trackball) this.trackball.update();
 
     if (this.rd && this.mouse) {
-      this.rd.render(time, this.mouse);
+      // this.rd.render(time, this.mouse);
     }
   }
 
@@ -298,7 +340,7 @@ export default class WebGLView {
     // if (this.composer) {
     //   this.composer.render();
     // }
-    const { mScene, mCamera } = this.rd;
-    this.renderer.render(mScene, mCamera);
+    // const { mScene, mCamera } = this.rd;
+    // this.renderer.render(mScene, mCamera);
   }
 }
