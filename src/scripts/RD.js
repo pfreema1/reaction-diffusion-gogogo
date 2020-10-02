@@ -173,7 +173,7 @@ export default class RD {
         }
 
         if (this.mouse) {
-            this.mUniforms.brush.value = new THREE.Vector2(this.mouse.x / this.width, 1 - this.mouse.y / this.height);
+            this.mUniforms.brush.value = new THREE.Vector2(this.mouse.x / window.innerWidth, 1 - this.mouse.y / window.innerHeight);
         }
 
         this.mScreenQuad.material = this.mScreenMaterial;
