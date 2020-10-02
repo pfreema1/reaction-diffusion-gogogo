@@ -21,8 +21,8 @@ export default class RD {
         this.mScene = new THREE.Scene();
         this.mScene.add(this.mCamera);
         this.mToggled = false;
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
+        this.width = 640;//window.innerWidth;
+        this.height = 480;//window.innerHeight;
         this.iterations = 8;
 
         this.feed = 0.037;
@@ -40,8 +40,8 @@ export default class RD {
         this.initMouseMoveListen();
 
         this.mUniforms = {
-            screenWidth: { type: "f", value: window.innerWidth },
-            screenHeight: { type: "f", value: window.innerHeight },
+            screenWidth: { type: "f", value: this.width },
+            screenHeight: { type: "f", value: this.height },
             tSource: { type: "t", value: undefined },
             delta: { type: "f", value: 1.0 },
             feed: { type: "f", value: this.feed },
@@ -78,7 +78,7 @@ export default class RD {
 
         this.mColorsNeedUpdate = true;
 
-        this.resize(window.innerWidth, window.innerHeight);
+        this.resize(this.width, this.height);
 
         this.render(0);
 
@@ -91,8 +91,8 @@ export default class RD {
 
     initMouseMoveListen() {
         this.mouse = new THREE.Vector2();
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
+        // this.width = window.innerWidth;
+        // this.height = window.innerHeight;
 
         window.addEventListener('mousemove', ({ clientX, clientY }) => {
             this.mouse.x = clientX; //(clientX / this.width) * 2 - 1;
@@ -102,10 +102,10 @@ export default class RD {
     }
 
     setupCamera() {
-        this.mCamera.aspect = window.innerWidth / window.innerHeight;
+        this.mCamera.aspect = this.width / this.height;
         this.mCamera.updateProjectionMatrix();
 
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setSize(this.width, this.height);
     }
 
     resize(width, height) {

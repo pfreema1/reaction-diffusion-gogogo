@@ -15,6 +15,11 @@ uniform float diffRateB;
 uniform float uTime;
 // uniform float brushSize;
 
+// shearing:  https://www.shadertoy.com/view/3st3D8
+// #define T(U) texture2D( tSource, U -.1/120.* vec2(.05*sin(6.28*((U).y-.05)),.05*cos(6.28*((U).x-.05))), 0.)
+#define T(U) texture2D( tSource, U -.1/120.* vec2(sin(uTime * 0.00005) * 0.15 *sin(6.28*((U).y-.05)),.05*cos(6.28*((U).x-.05))), 0.)
+
+
 
 vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
 float step_x = 1.0/screenWidth;
@@ -37,11 +42,17 @@ void main()
 
     float brushSize = map(snoise2(vec2(uTime * 0.00005)), -1.0, 1.0, 5.0, 2000.0);
     
-    vec2 uv = texture2D(tSource, vUv).rg;
-    vec2 uv0 = texture2D(tSource, vUv+vec2(-step_x, 0.0)).rg;
-    vec2 uv1 = texture2D(tSource, vUv+vec2(step_x, 0.0)).rg;
-    vec2 uv2 = texture2D(tSource, vUv+vec2(0.0, -step_y)).rg;
-    vec2 uv3 = texture2D(tSource, vUv+vec2(0.0, step_y)).rg;
+    // vec2 uv = texture2D(tSource, vUv).rg;
+    // vec2 uv0 = texture2D(tSource, vUv+vec2(-step_x, 0.0)).rg;
+    // vec2 uv1 = texture2D(tSource, vUv+vec2(step_x, 0.0)).rg;
+    // vec2 uv2 = texture2D(tSource, vUv+vec2(0.0, -step_y)).rg;
+    // vec2 uv3 = texture2D(tSource, vUv+vec2(0.0, step_y)).rg;
+
+    vec2 uv = T(vUv).rg;
+    vec2 uv0 = T(vUv+vec2(-step_x, 0.0)).rg;
+    vec2 uv1 = T(vUv+vec2(step_x, 0.0)).rg;
+    vec2 uv2 = T(vUv+vec2(0.0, -step_y)).rg;
+    vec2 uv3 = T(vUv+vec2(0.0, step_y)).rg;
     
     vec2 lapl = (uv0 + uv1 + uv2 + uv3 - 4.0*uv);
     // float du = /*0.00002*/0.2097*lapl.r - uv.r*uv.g*uv.g + feed*(1.0 - uv.r);
